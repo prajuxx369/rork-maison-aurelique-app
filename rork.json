@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "Maison Aurélique",
+      "path": "expo",
+      "framework": "react-native"
+    }
+  ]
+}
