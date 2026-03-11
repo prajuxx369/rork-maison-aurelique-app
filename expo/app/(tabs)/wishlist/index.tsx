@@ -62,9 +62,19 @@ export default function WishlistScreen() {
   if (wishlistProducts.length === 0) {
     return (
       <View style={[styles.container, styles.emptyContainer]}>
+        <Image
+          source={{ uri: 'https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=1200&q=80' }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+        />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.75)', 'rgba(0,0,0,0.95)']}
+          locations={[0, 0.5, 1]}
+          style={StyleSheet.absoluteFill}
+        />
         <View style={[styles.emptyContent, { paddingTop: insets.top }]}>
           <View style={styles.emptyIconCircle}>
-            <Heart color={Colors.whiteAlpha15} size={36} strokeWidth={1} />
+            <Heart color={Colors.goldAlpha40} size={36} strokeWidth={1} />
           </View>
           <Text style={styles.emptyTitle}>Your Wishlist</Text>
           <Text style={styles.emptySubtitle}>

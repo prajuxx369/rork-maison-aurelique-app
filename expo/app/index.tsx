@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { View, StyleSheet, Animated, Dimensions, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import Colors from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 
@@ -188,8 +189,13 @@ export default function SplashScreen() {
 
   return (
     <Animated.View style={[styles.container, { opacity: screenFade }]}>
+      <Image
+        source={{ uri: 'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1200&q=60' }}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+      />
       <LinearGradient
-        colors={[Colors.blackDeep, '#0a0806', Colors.blackDeep]}
+        colors={['rgba(5,5,5,0.88)', 'rgba(10,8,6,0.92)', 'rgba(5,5,5,0.88)']}
         style={StyleSheet.absoluteFill}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}

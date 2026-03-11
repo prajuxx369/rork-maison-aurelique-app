@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Animated,
   Easing,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import {
   User,
   Bell,
@@ -30,6 +32,9 @@ import Colors from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { useWishlist } from '@/providers/WishlistProvider';
 import { useCollection } from '@/providers/CollectionProvider';
+
+const { width: _SCREEN_WIDTH } = Dimensions.get('window');
+const HEADER_HEIGHT = 280;
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -123,23 +128,39 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
       >
-        <Animated.View style={[styles.header, { opacity: headerFade, transform: [{ scale: headerScale }] }]}>
-          <View style={styles.avatarOuter}>
-            <LinearGradient
-              colors={[Colors.goldAlpha20, Colors.goldAlpha05]}
-              style={styles.avatarGradient}
-            />
-            <View style={styles.avatarInner}>
-              <User color={Colors.gold} size={30} strokeWidth={1} />
+        <View style={styles.headerBanner}>
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80' }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+          />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.95)', Colors.black]}
+            locations={[0, 0.4, 0.75, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+          <Animated.View style={[styles.header, { opacity: headerFade, transform: [{ scale: headerScale }] }]}>
+            <View style={styles.avatarOuter}>
+              <LinearGradient
+                colors={[Colors.goldAlpha20, Colors.goldAlpha05]}
+                style={styles.avatarGradient}
+              />
+              <View style={styles.avatarInner}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80' }}
+                  style={styles.avatarImage}
+                  contentFit="cover"
+                />
+              </View>
             </View>
-          </View>
-          <Text style={styles.welcomeText}>Welcome</Text>
-          <View style={styles.memberRow}>
-            <View style={styles.memberLine} />
-            <Text style={styles.memberLabel}>DISTINGUISHED MEMBER</Text>
-            <View style={styles.memberLine} />
-          </View>
-        </Animated.View>
+            <Text style={styles.welcomeText}>Welcome</Text>
+            <View style={styles.memberRow}>
+              <View style={styles.memberLine} />
+              <Text style={styles.memberLabel}>DISTINGUISHED MEMBER</Text>
+              <View style={styles.memberLine} />
+            </View>
+          </Animated.View>
+        </View>
 
         <Animated.View style={[styles.tierCard, { opacity: tierFade, transform: [{ translateY: tierSlide }] }]}>
           <View style={styles.tierIconContainer}>
@@ -155,8 +176,13 @@ export default function ProfileScreen() {
         </Animated.View>
 
         <Animated.View style={[styles.exclusiveBanner, { opacity: exclusiveFade, transform: [{ translateY: exclusiveSlide }] }]}>
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80' }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+          />
           <LinearGradient
-            colors={[Colors.goldAlpha10, Colors.goldAlpha05, 'transparent']}
+            colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.8)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
@@ -223,10 +249,12 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.black },
   scrollContent: { paddingBottom: 48 },
+  headerBanner: { height: HEADER_HEIGHT, position: 'relative' as const, justifyContent: 'flex-end' as const },
   header: { alignItems: 'center' as const, paddingVertical: 28 },
   avatarOuter: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center' as const, alignItems: 'center' as const, marginBottom: 18, overflow: 'hidden' as const },
   avatarGradient: { ...StyleSheet.absoluteFillObject },
-  avatarInner: { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.charcoalMedium, justifyContent: 'center' as const, alignItems: 'center' as const, borderWidth: 0.5, borderColor: Colors.goldAlpha15 },
+  avatarInner: { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.charcoalMedium, justifyContent: 'center' as const, alignItems: 'center' as const, borderWidth: 0.5, borderColor: Colors.goldAlpha15, overflow: 'hidden' as const },
+  avatarImage: { width: 80, height: 80, borderRadius: 40 },
   welcomeText: { fontFamily: Typography.serifFamily, fontSize: 28, fontWeight: '400' as const, color: Colors.white, marginBottom: 8, letterSpacing: 0.5 },
   memberRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 10 },
   memberLine: { width: 14, height: 0.5, backgroundColor: Colors.goldAlpha20 },

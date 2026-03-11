@@ -200,9 +200,19 @@ export default function CollectionScreen() {
   if (items.length === 0 && !showSuccess) {
     return (
       <View style={[styles.container, styles.emptyContainer]}>
+        <Image
+          source={{ uri: 'https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=1200&q=80' }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+        />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.75)', 'rgba(0,0,0,0.95)']}
+          locations={[0, 0.5, 1]}
+          style={StyleSheet.absoluteFill}
+        />
         <View style={[styles.emptyContent, { paddingTop: insets.top }]}>
           <View style={styles.emptyIconCircle}>
-            <ShoppingBag color={Colors.whiteAlpha15} size={36} strokeWidth={1} />
+            <ShoppingBag color={Colors.goldAlpha40} size={36} strokeWidth={1} />
           </View>
           <Text style={styles.emptyTitle}>Your Collection</Text>
           <Text style={styles.emptySubtitle}>
