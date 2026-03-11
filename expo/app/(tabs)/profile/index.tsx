@@ -130,7 +130,7 @@ export default function ProfileScreen() {
       >
         <View style={styles.headerBanner}>
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80' }}
+            source={{ uri: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1200&q=80' }}
             style={StyleSheet.absoluteFill}
             contentFit="cover"
           />
@@ -147,7 +147,7 @@ export default function ProfileScreen() {
               />
               <View style={styles.avatarInner}>
                 <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80' }}
+                  source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80' }}
                   style={styles.avatarImage}
                   contentFit="cover"
                 />
@@ -177,7 +177,7 @@ export default function ProfileScreen() {
 
         <Animated.View style={[styles.exclusiveBanner, { opacity: exclusiveFade, transform: [{ translateY: exclusiveSlide }] }]}>
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80' }}
+            source={{ uri: 'https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=1200&q=80' }}
             style={StyleSheet.absoluteFill}
             contentFit="cover"
           />

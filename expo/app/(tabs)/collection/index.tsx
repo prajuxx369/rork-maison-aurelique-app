@@ -201,7 +201,7 @@ export default function CollectionScreen() {
     return (
       <View style={[styles.container, styles.emptyContainer]}>
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=1200&q=80' }}
+          source={{ uri: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=1200&q=80' }}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
         />

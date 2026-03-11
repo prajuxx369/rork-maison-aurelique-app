@@ -190,7 +190,7 @@ export default function SplashScreen() {
   return (
     <Animated.View style={[styles.container, { opacity: screenFade }]}>
       <Image
-        source={{ uri: 'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1200&q=60' }}
+        source={{ uri: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=1200&q=60' }}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
       />

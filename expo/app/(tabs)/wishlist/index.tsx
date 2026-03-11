@@ -63,7 +63,7 @@ export default function WishlistScreen() {
     return (
       <View style={[styles.container, styles.emptyContainer]}>
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=1200&q=80' }}
+          source={{ uri: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=1200&q=80' }}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
         />

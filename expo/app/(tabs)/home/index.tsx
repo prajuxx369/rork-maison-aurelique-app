@@ -374,7 +374,7 @@ export default function HomeScreen() {
         <View style={[styles.heroContainer, { paddingTop: insets.top }]}>
           <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ scale: heroScale }] }]}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1200&q=80' }}
+              source={{ uri: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=1200&q=80' }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
             />
@@ -557,7 +557,7 @@ export default function HomeScreen() {
         <Animated.View style={[styles.section, { opacity: sectionFades[7].fade, transform: [{ translateY: sectionFades[7].slide }] }]}>
           <TouchableOpacity style={styles.limitedBanner} activeOpacity={0.85} onPress={() => navigateShop()}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=1200&q=80' }}
+              source={{ uri: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=1200&q=80' }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
             />
