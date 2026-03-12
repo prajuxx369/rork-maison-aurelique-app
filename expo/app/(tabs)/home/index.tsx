@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, Sparkles, Search, Crown, ArrowRight, Droplets } from 'lucide-react-native';
+import { ChevronRight, Sparkles, Search, Crown, ArrowRight, Droplets, Diamond, Star } from 'lucide-react-native';
 import type { Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -35,42 +35,35 @@ const { width, height } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.68;
 const CARD_HEIGHT = 380;
 const CARD_GAP = 14;
-const HERO_HEIGHT = height * 0.68;
+const HERO_HEIGHT = height * 0.78;
 const CAT_TILE_WIDTH = width * 0.38;
 const CAT_TILE_HEIGHT = 200;
 const WATCH_CARD_W = width * 0.52;
 const WATCH_CARD_H = 300;
-const MIST_COUNT = 18;
+const RING_COUNT = 4;
+const ORB_COUNT = 6;
 
-interface MistParticle {
-  x: Animated.Value;
-  y: Animated.Value;
-  opacity: Animated.Value;
+interface FloatingOrb {
+  anim: Animated.Value;
+  x: number;
   size: number;
-  startX: number;
   startY: number;
-  endX: number;
-  endY: number;
+  drift: number;
   duration: number;
   delay: number;
 }
 
-function createMistParticles(): MistParticle[] {
-  const arr: MistParticle[] = [];
-  for (let i = 0; i < MIST_COUNT; i++) {
-    const startX = Math.random() * width;
-    const startY = HERO_HEIGHT * 0.3 + Math.random() * HERO_HEIGHT * 0.5;
+function createOrbs(): FloatingOrb[] {
+  const arr: FloatingOrb[] = [];
+  for (let i = 0; i < ORB_COUNT; i++) {
     arr.push({
-      x: new Animated.Value(0),
-      y: new Animated.Value(0),
-      opacity: new Animated.Value(0),
-      size: 2 + Math.random() * 4,
-      startX,
-      startY,
-      endX: startX + (Math.random() - 0.5) * 100,
-      endY: startY - 40 - Math.random() * 140,
-      duration: 3000 + Math.random() * 2500,
-      delay: Math.random() * 2200,
+      anim: new Animated.Value(0),
+      x: Math.random() * width,
+      size: 3 + Math.random() * 5,
+      startY: HERO_HEIGHT * 0.5 + Math.random() * HERO_HEIGHT * 0.35,
+      drift: (Math.random() - 0.5) * 60,
+      duration: 4000 + Math.random() * 3000,
+      delay: Math.random() * 3000,
     });
   }
   return arr;
@@ -151,32 +144,60 @@ function GoldShimmerBar({ delay = 0, barWidth = 60 }: { delay?: number; barWidth
   );
 }
 
-function PulsingGlow({ size = 200, color = Colors.goldAlpha08, topPercent = 40, delay = 0 }: { size?: number; color?: string; topPercent?: number; delay?: number }) {
-  const pulse = useRef(new Animated.Value(0.4)).current;
+function ExpandingRing({ delay = 0, maxSize = 200 }: { delay?: number; maxSize?: number }) {
+  const scale = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0.5)).current;
 
   useEffect(() => {
     const anim = Animated.loop(
       Animated.sequence([
         Animated.delay(delay),
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 3000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0.4,
-          duration: 3000,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
+        Animated.parallel([
+          Animated.timing(scale, { toValue: 1, duration: 4000, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0, duration: 4000, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        ]),
+        Animated.parallel([
+          Animated.timing(scale, { toValue: 0, duration: 0, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0.5, duration: 0, useNativeDriver: true }),
+        ]),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [scale, opacity, delay]);
+
+  return (
+    <Animated.View
+      style={{
+        position: 'absolute' as const,
+        width: maxSize,
+        height: maxSize,
+        borderRadius: maxSize / 2,
+        borderWidth: 1,
+        borderColor: Colors.goldAlpha20,
+        alignSelf: 'center' as const,
+        top: '35%',
+        opacity,
+        transform: [{ scale }],
+      }}
+    />
+  );
+}
+
+function BreathingGlow({ size = 240, delay = 0 }: { size?: number; delay?: number }) {
+  const pulse = useRef(new Animated.Value(0.2)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(pulse, { toValue: 0.7, duration: 3500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.2, duration: 3500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])
     );
     anim.start();
     return () => anim.stop();
   }, [pulse, delay]);
-
-  const topValue = (topPercent / 100) * HERO_HEIGHT;
 
   return (
     <Animated.View
@@ -185,8 +206,8 @@ function PulsingGlow({ size = 200, color = Colors.goldAlpha08, topPercent = 40, 
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: color,
-        top: topValue,
+        backgroundColor: 'rgba(212,175,55,0.04)',
+        top: '28%',
         alignSelf: 'center' as const,
         opacity: pulse,
       }}
@@ -198,14 +219,23 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const heroFade = useRef(new Animated.Value(0)).current;
-  const heroSlide = useRef(new Animated.Value(40)).current;
-  const heroScale = useRef(new Animated.Value(1.12)).current;
-  const labelLineWidth = useRef(new Animated.Value(0)).current;
-  const heroTitlePulse = useRef(new Animated.Value(0.85)).current;
-  const heroGlowPulse = useRef(new Animated.Value(0)).current;
-  const heroShimmer = useRef(new Animated.Value(-1)).current;
-  const heroDropletOpacity = useRef(new Animated.Value(0)).current;
+  const heroImageFade = useRef(new Animated.Value(0)).current;
+  const heroImageScale = useRef(new Animated.Value(1.18)).current;
+  const heroBrandFade = useRef(new Animated.Value(0)).current;
+  const heroBrandSlide = useRef(new Animated.Value(-20)).current;
+  const heroTitleFade = useRef(new Animated.Value(0)).current;
+  const heroTitleSlide = useRef(new Animated.Value(50)).current;
+  const heroDescFade = useRef(new Animated.Value(0)).current;
+  const heroCtaFade = useRef(new Animated.Value(0)).current;
+  const heroCtaScale = useRef(new Animated.Value(0.9)).current;
+  const heroLineExpand = useRef(new Animated.Value(0)).current;
+  const heroVerticalLine = useRef(new Animated.Value(0)).current;
+  const heroSideLabelFade = useRef(new Animated.Value(0)).current;
+  const heroBottomFade = useRef(new Animated.Value(0)).current;
+  const heroGlowBreath = useRef(new Animated.Value(0)).current;
+  const heroOverlayShimmer = useRef(new Animated.Value(-1)).current;
+  const heroDiamondSpin = useRef(new Animated.Value(0)).current;
+  const scrollIndicator = useRef(new Animated.Value(0)).current;
 
   const sectionFades = useRef(
     Array.from({ length: 10 }, () => ({
@@ -214,7 +244,7 @@ export default function HomeScreen() {
     }))
   ).current;
 
-  const mistParticles = useMemo(() => createMistParticles(), []);
+  const orbs = useMemo(() => createOrbs(), []);
 
   const featured = getFeaturedProducts().slice(0, 4);
   const newArrivals = getNewArrivals().slice(0, 6);
@@ -226,57 +256,71 @@ export default function HomeScreen() {
   const featuredAnims = useStaggeredFade(featured.length, 600, 120);
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(heroFade, { toValue: 1, duration: 1400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(heroSlide, { toValue: 0, duration: 1400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(heroScale, { toValue: 1, duration: 12000, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-      Animated.timing(labelLineWidth, { toValue: 1, duration: 1000, delay: 700, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
-      Animated.timing(heroDropletOpacity, { toValue: 1, duration: 1800, delay: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    Animated.stagger(200, [
+      Animated.parallel([
+        Animated.timing(heroImageFade, { toValue: 1, duration: 1800, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(heroImageScale, { toValue: 1, duration: 15000, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(heroBrandFade, { toValue: 1, duration: 1000, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(heroBrandSlide, { toValue: 0, duration: 1000, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(heroLineExpand, { toValue: 1, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
+        Animated.timing(heroVerticalLine, { toValue: 1, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
+      ]),
+      Animated.parallel([
+        Animated.timing(heroTitleFade, { toValue: 1, duration: 1200, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(heroTitleSlide, { toValue: 0, duration: 1200, easing: Easing.bezier(0.22, 1, 0.36, 1), useNativeDriver: true }),
+      ]),
+      Animated.timing(heroDescFade, { toValue: 1, duration: 800, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.parallel([
+        Animated.timing(heroCtaFade, { toValue: 1, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.spring(heroCtaScale, { toValue: 1, friction: 8, tension: 60, useNativeDriver: true }),
+      ]),
+      Animated.timing(heroSideLabelFade, { toValue: 1, duration: 600, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(heroBottomFade, { toValue: 1, duration: 600, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
     ]).start();
-
-    const titlePulseAnim = Animated.loop(
-      Animated.sequence([
-        Animated.timing(heroTitlePulse, { toValue: 1, duration: 3500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(heroTitlePulse, { toValue: 0.85, duration: 3500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ])
-    );
-    titlePulseAnim.start();
 
     const glowAnim = Animated.loop(
       Animated.sequence([
-        Animated.timing(heroGlowPulse, { toValue: 0.6, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(heroGlowPulse, { toValue: 0, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(heroGlowBreath, { toValue: 0.8, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(heroGlowBreath, { toValue: 0, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])
     );
     glowAnim.start();
 
     const shimmerAnim = Animated.loop(
       Animated.sequence([
-        Animated.timing(heroShimmer, { toValue: 1, duration: 3200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.delay(1500),
-        Animated.timing(heroShimmer, { toValue: -1, duration: 0, useNativeDriver: true }),
+        Animated.timing(heroOverlayShimmer, { toValue: 1, duration: 4500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.delay(2000),
+        Animated.timing(heroOverlayShimmer, { toValue: -1, duration: 0, useNativeDriver: true }),
       ])
     );
     shimmerAnim.start();
 
-    mistParticles.forEach((p) => {
-      const animateP = () => {
-        p.x.setValue(0);
-        p.y.setValue(0);
-        p.opacity.setValue(0);
+    const diamondAnim = Animated.loop(
+      Animated.timing(heroDiamondSpin, { toValue: 1, duration: 12000, easing: Easing.linear, useNativeDriver: true })
+    );
+    diamondAnim.start();
+
+    const scrollAnim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scrollIndicator, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(scrollIndicator, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ])
+    );
+    scrollAnim.start();
+
+    orbs.forEach((orb) => {
+      const animateOrb = () => {
+        orb.anim.setValue(0);
         Animated.sequence([
-          Animated.delay(p.delay),
-          Animated.parallel([
-            Animated.timing(p.x, { toValue: 1, duration: p.duration, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-            Animated.timing(p.y, { toValue: 1, duration: p.duration, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-            Animated.sequence([
-              Animated.timing(p.opacity, { toValue: 0.5, duration: p.duration * 0.25, useNativeDriver: true }),
-              Animated.timing(p.opacity, { toValue: 0, duration: p.duration * 0.75, useNativeDriver: true }),
-            ]),
-          ]),
-        ]).start(() => animateP());
+          Animated.delay(orb.delay),
+          Animated.timing(orb.anim, { toValue: 1, duration: orb.duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]).start(() => animateOrb());
       };
-      animateP();
+      animateOrb();
     });
 
     sectionFades.forEach((s, i) => {
@@ -287,11 +331,12 @@ export default function HomeScreen() {
     });
 
     return () => {
-      titlePulseAnim.stop();
       glowAnim.stop();
       shimmerAnim.stop();
+      diamondAnim.stop();
+      scrollAnim.stop();
     };
-  }, [heroFade, heroSlide, heroScale, labelLineWidth, sectionFades, heroTitlePulse, heroGlowPulse, heroShimmer, heroDropletOpacity, mistParticles]);
+  }, [heroImageFade, heroImageScale, heroBrandFade, heroBrandSlide, heroTitleFade, heroTitleSlide, heroDescFade, heroCtaFade, heroCtaScale, heroLineExpand, heroVerticalLine, heroSideLabelFade, heroBottomFade, heroGlowBreath, heroOverlayShimmer, heroDiamondSpin, scrollIndicator, sectionFades, orbs]);
 
   const navigateProduct = useCallback((id: number) => {
     if (Platform.OS !== 'web') {
@@ -307,8 +352,11 @@ export default function HomeScreen() {
     router.push('/(tabs)/shop');
   }, [router]);
 
-  const animatedLineW = labelLineWidth.interpolate({ inputRange: [0, 1], outputRange: [0, 44] });
-  const heroShimmerTranslate = heroShimmer.interpolate({ inputRange: [-1, 0, 1], outputRange: [-width, 0, width] });
+  const heroLineW = heroLineExpand.interpolate({ inputRange: [0, 1], outputRange: [0, 60] });
+  const heroVLineH = heroVerticalLine.interpolate({ inputRange: [0, 1], outputRange: [0, 40] });
+  const shimmerTranslateX = heroOverlayShimmer.interpolate({ inputRange: [-1, 0, 1], outputRange: [-width, 0, width] });
+  const diamondRotate = heroDiamondSpin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const scrollBounce = scrollIndicator.interpolate({ inputRange: [0, 1], outputRange: [0, 8] });
 
   const renderSectionHeader = (label: string, title: string, onSeeAll?: () => void, withShimmer = false) => (
     <View style={styles.sectionHeader}>
@@ -371,48 +419,55 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 48 }}>
+        {/* ========== NEW HERO ========== */}
         <View style={[styles.heroContainer, { paddingTop: insets.top }]}>
-          <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ scale: heroScale }] }]}>
+          <Animated.View style={[StyleSheet.absoluteFill, { opacity: heroImageFade, transform: [{ scale: heroImageScale }] }]}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=1200&q=80' }}
+              source={{ uri: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=1200&q=80' }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
             />
           </Animated.View>
+
           <LinearGradient
-            colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.55)', 'rgba(0,0,0,0.92)', Colors.black]}
-            locations={[0, 0.2, 0.5, 0.78, 1]}
+            colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.7)', Colors.black]}
+            locations={[0, 0.25, 0.45, 0.72, 1]}
             style={StyleSheet.absoluteFill}
           />
 
-          <Animated.View style={[styles.heroGlowOrb, { opacity: heroGlowPulse }]} />
-          <PulsingGlow size={120} color="rgba(212,175,55,0.04)" topPercent={20} delay={1500} />
+          <BreathingGlow size={300} delay={500} />
+          <Animated.View style={[styles.heroGlowCenter, { opacity: heroGlowBreath }]} />
 
-          {mistParticles.map((p, i) => (
-            <Animated.View
-              key={`mist-${i}`}
-              style={[
-                styles.mistParticle,
-                {
-                  width: p.size,
-                  height: p.size,
-                  borderRadius: p.size / 2,
-                  opacity: p.opacity,
-                  transform: [
-                    { translateX: p.x.interpolate({ inputRange: [0, 1], outputRange: [p.startX, p.endX] }) },
-                    { translateY: p.y.interpolate({ inputRange: [0, 1], outputRange: [p.startY, p.endY] }) },
-                  ],
-                },
-              ]}
-            />
+          {Array.from({ length: RING_COUNT }).map((_, i) => (
+            <ExpandingRing key={`ring-${i}`} delay={i * 1200} maxSize={180 + i * 80} />
           ))}
 
-          <Animated.View style={[styles.heroShimmerOverlay, { transform: [{ translateX: heroShimmerTranslate }] }]}>
+          {orbs.map((orb, i) => {
+            const orbOpacity = orb.anim.interpolate({ inputRange: [0, 0.3, 0.7, 1], outputRange: [0, 0.6, 0.6, 0] });
+            const orbY = orb.anim.interpolate({ inputRange: [0, 1], outputRange: [orb.startY, orb.startY - 120] });
+            const orbX = orb.anim.interpolate({ inputRange: [0, 1], outputRange: [orb.x, orb.x + orb.drift] });
+            return (
+              <Animated.View
+                key={`orb-${i}`}
+                style={{
+                  position: 'absolute' as const,
+                  width: orb.size,
+                  height: orb.size,
+                  borderRadius: orb.size / 2,
+                  backgroundColor: Colors.gold,
+                  opacity: orbOpacity,
+                  transform: [{ translateX: orbX }, { translateY: orbY }],
+                }}
+              />
+            );
+          })}
+
+          <Animated.View style={[styles.heroShimmerOverlay, { transform: [{ translateX: shimmerTranslateX }] }]}>
             <LinearGradient
-              colors={['transparent', 'rgba(212,175,55,0.06)', 'transparent']}
+              colors={['transparent', 'rgba(212,175,55,0.05)', 'transparent']}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
-              style={{ width: width * 0.5, height: HERO_HEIGHT }}
+              style={{ width: width * 0.6, height: HERO_HEIGHT }}
             />
           </Animated.View>
 
@@ -424,38 +479,87 @@ export default function HomeScreen() {
             <Search color={Colors.whiteAlpha60} size={18} strokeWidth={1.5} />
           </TouchableOpacity>
 
-          <Animated.View style={[styles.heroContent, { opacity: heroFade, transform: [{ translateY: heroSlide }] }]}>
-            <View style={styles.heroLabelRow}>
-              <Animated.View style={[styles.heroLabelLine, { width: animatedLineW }]} />
-              <Droplets color={Colors.gold} size={12} strokeWidth={1.2} />
-              <Text style={styles.heroSubtitle}>PARFUMERIE</Text>
-            </View>
-            <Animated.Text style={[styles.heroTitle, { opacity: heroTitlePulse }]}>
-              {"Timeless\nScents"}
-            </Animated.Text>
-            <Text style={styles.heroDesc}>
-              {"An olfactory journey through the\nrarest essences of Maison Aurélique"}
-            </Text>
-            <TouchableOpacity
-              style={styles.heroCtaBtn}
-              activeOpacity={0.8}
-              onPress={() => navigateShop('perfumes')}
-            >
-              <LinearGradient
-                colors={[Colors.goldDark, Colors.gold, Colors.goldLight]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFill}
-              />
-              <Text style={styles.heroCtaText}>DISCOVER FRAGRANCES</Text>
-            </TouchableOpacity>
+          {/* Brand mark top-left */}
+          <Animated.View style={[styles.heroBrandMark, { top: insets.top + 14, opacity: heroBrandFade, transform: [{ translateX: heroBrandSlide }] }]}>
+            <Text style={styles.heroBrandMarkText}>MAISON</Text>
+            <Text style={styles.heroBrandMarkAccent}>AURÉLIQUE</Text>
           </Animated.View>
 
-          <Animated.View style={[styles.heroBrandWatermark, { opacity: heroDropletOpacity }]}>
-            <Text style={styles.heroBrandWatermarkText}>MA</Text>
+          {/* Vertical gold accent line */}
+          <Animated.View style={[styles.heroVerticalLine, { height: heroVLineH }]} />
+
+          {/* Side label */}
+          <Animated.View style={[styles.heroSideLabel, { opacity: heroSideLabelFade }]}>
+            <Text style={styles.heroSideLabelText}>EST. MMXXIV</Text>
+          </Animated.View>
+
+          {/* Rotating diamond accent */}
+          <Animated.View style={[styles.heroDiamondWrap, { transform: [{ rotate: diamondRotate }] }]}>
+            <Diamond color={Colors.goldAlpha30} size={16} strokeWidth={1} />
+          </Animated.View>
+
+          {/* Main hero content - centered dramatic layout */}
+          <View style={styles.heroContentWrap}>
+            <Animated.View style={[styles.heroLabelRow, { opacity: heroBrandFade }]}>
+              <Animated.View style={[styles.heroLabelLine, { width: heroLineW }]} />
+              <Droplets color={Colors.gold} size={11} strokeWidth={1.2} />
+              <Text style={styles.heroLabelText}>LA COLLECTION</Text>
+              <Animated.View style={[styles.heroLabelLine, { width: heroLineW }]} />
+            </Animated.View>
+
+            <Animated.Text style={[styles.heroTitle, { opacity: heroTitleFade, transform: [{ translateY: heroTitleSlide }] }]}>
+              {"The Art of\nRefined\nLuxury"}
+            </Animated.Text>
+
+            <Animated.View style={[styles.heroDescWrap, { opacity: heroDescFade }]}>
+              <Text style={styles.heroDesc}>
+                {"Where rare craftsmanship meets\ntimeless elegance"}
+              </Text>
+            </Animated.View>
+
+            <Animated.View style={{ opacity: heroCtaFade, transform: [{ scale: heroCtaScale }] }}>
+              <TouchableOpacity
+                style={styles.heroCtaBtn}
+                activeOpacity={0.8}
+                onPress={() => navigateShop('perfumes')}
+              >
+                <LinearGradient
+                  colors={[Colors.goldDark, Colors.gold, Colors.goldLight]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                <Star color={Colors.black} size={12} strokeWidth={2} style={{ marginRight: 8 }} />
+                <Text style={styles.heroCtaText}>EXPLORE THE MAISON</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+
+          {/* Bottom info row */}
+          <Animated.View style={[styles.heroBottomRow, { opacity: heroBottomFade }]}>
+            <View style={styles.heroBottomItem}>
+              <Text style={styles.heroBottomNumber}>58</Text>
+              <Text style={styles.heroBottomLabel}>PIECES</Text>
+            </View>
+            <View style={styles.heroBottomDivider} />
+            <View style={styles.heroBottomItem}>
+              <Text style={styles.heroBottomNumber}>7</Text>
+              <Text style={styles.heroBottomLabel}>COLLECTIONS</Text>
+            </View>
+            <View style={styles.heroBottomDivider} />
+            <View style={styles.heroBottomItem}>
+              <Text style={styles.heroBottomNumber}>1</Text>
+              <Text style={styles.heroBottomLabel}>MAISON</Text>
+            </View>
+          </Animated.View>
+
+          {/* Scroll indicator */}
+          <Animated.View style={[styles.scrollIndicator, { transform: [{ translateY: scrollBounce }] }]}>
+            <View style={styles.scrollLine} />
           </Animated.View>
         </View>
 
+        {/* ========== SECTIONS ========== */}
         <Animated.View style={[styles.section, { opacity: sectionFades[0].fade, transform: [{ translateY: sectionFades[0].slide }] }]}>
           {renderSectionHeader('EXPLORE', 'The Maison', () => navigateShop(), true)}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
@@ -582,7 +686,6 @@ export default function HomeScreen() {
         </Animated.View>
 
         <Animated.View style={[styles.ctaSection, { opacity: sectionFades[8].fade, transform: [{ translateY: sectionFades[8].slide }] }]}>
-          <PulsingGlow size={160} color="rgba(212,175,55,0.03)" topPercent={10} delay={800} />
           <Text style={styles.ctaLabel}>YOUR JOURNEY</Text>
           <Text style={styles.ctaTitle}>{"Enter the World of\nMaison Aurélique"}</Text>
           <TouchableOpacity
@@ -606,19 +709,16 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.black },
-  heroContainer: { height: HERO_HEIGHT, position: 'relative' as const },
-  heroGlowOrb: {
+
+  heroContainer: { height: HERO_HEIGHT, position: 'relative' as const, overflow: 'hidden' as const },
+  heroGlowCenter: {
     position: 'absolute' as const,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: 'rgba(212,175,55,0.06)',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(212,175,55,0.05)',
     top: '30%',
-    alignSelf: 'center',
-  },
-  mistParticle: {
-    position: 'absolute' as const,
-    backgroundColor: Colors.gold,
+    alignSelf: 'center' as const,
   },
   heroShimmerOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -637,34 +737,169 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Colors.whiteAlpha10,
   },
-  heroContent: { position: 'absolute' as const, bottom: 48, left: 28, right: 28, zIndex: 2 },
-  heroLabelRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 10, marginBottom: 14 },
-  heroLabelLine: { height: 1, backgroundColor: Colors.gold },
-  heroSubtitle: { fontFamily: Typography.sansFamily, color: Colors.gold, fontSize: 10, letterSpacing: 5, fontWeight: '400' as const, textTransform: 'uppercase' as const },
-  heroTitle: { fontFamily: Typography.serifFamily, color: Colors.white, fontSize: 46, fontWeight: '300' as const, letterSpacing: 1, lineHeight: 54 },
-  heroDesc: { fontFamily: Typography.sansFamily, color: Colors.whiteAlpha40, fontSize: 13, lineHeight: 20, marginTop: 14, fontWeight: '300' as const, letterSpacing: 0.3 },
-  heroCtaBtn: {
-    marginTop: 22,
-    paddingVertical: 14,
+
+  heroBrandMark: {
+    position: 'absolute' as const,
+    left: 24,
+    zIndex: 10,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 6,
+  },
+  heroBrandMarkText: {
+    fontFamily: Typography.sansFamily,
+    color: Colors.whiteAlpha40,
+    fontSize: 10,
+    letterSpacing: 4,
+    fontWeight: '300' as const,
+  },
+  heroBrandMarkAccent: {
+    fontFamily: Typography.serifFamily,
+    color: Colors.gold,
+    fontSize: 10,
+    letterSpacing: 3,
+    fontWeight: '400' as const,
+  },
+
+  heroVerticalLine: {
+    position: 'absolute' as const,
+    left: 28,
+    top: '22%',
+    width: 1,
+    backgroundColor: Colors.goldAlpha20,
+  },
+
+  heroSideLabel: {
+    position: 'absolute' as const,
+    right: -18,
+    top: '45%',
+    transform: [{ rotate: '90deg' }],
+    zIndex: 5,
+  },
+  heroSideLabelText: {
+    fontFamily: Typography.sansFamily,
+    color: Colors.goldAlpha20,
+    fontSize: 8,
+    letterSpacing: 6,
+    fontWeight: '300' as const,
+  },
+
+  heroDiamondWrap: {
+    position: 'absolute' as const,
+    left: 22,
+    top: '38%',
+    zIndex: 5,
+  },
+
+  heroContentWrap: {
+    position: 'absolute' as const,
+    bottom: 110,
+    left: 0,
+    right: 0,
+    alignItems: 'center' as const,
+    zIndex: 5,
     paddingHorizontal: 28,
+  },
+  heroLabelRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 12,
+    marginBottom: 20,
+  },
+  heroLabelLine: { height: 1, backgroundColor: Colors.goldAlpha30 },
+  heroLabelText: {
+    fontFamily: Typography.sansFamily,
+    color: Colors.gold,
+    fontSize: 9,
+    letterSpacing: 6,
+    fontWeight: '400' as const,
+  },
+  heroTitle: {
+    fontFamily: Typography.serifFamily,
+    color: Colors.white,
+    fontSize: 44,
+    fontWeight: '300' as const,
+    letterSpacing: 1.5,
+    lineHeight: 54,
+    textAlign: 'center' as const,
+    marginBottom: 16,
+  },
+  heroDescWrap: {
+    marginBottom: 28,
+  },
+  heroDesc: {
+    fontFamily: Typography.sansFamily,
+    color: Colors.whiteAlpha40,
+    fontSize: 13,
+    lineHeight: 22,
+    fontWeight: '300' as const,
+    letterSpacing: 0.5,
+    textAlign: 'center' as const,
+  },
+  heroCtaBtn: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    paddingVertical: 15,
+    paddingHorizontal: 32,
     borderRadius: 3,
-    alignSelf: 'flex-start' as const,
     overflow: 'hidden' as const,
   },
-  heroCtaText: { fontFamily: Typography.sansFamily, color: Colors.black, fontSize: 10, fontWeight: '700' as const, letterSpacing: 3 },
-  heroBrandWatermark: {
+  heroCtaText: {
+    fontFamily: Typography.sansFamily,
+    color: Colors.black,
+    fontSize: 10,
+    fontWeight: '700' as const,
+    letterSpacing: 3,
+  },
+
+  heroBottomRow: {
     position: 'absolute' as const,
-    top: '18%',
-    right: 24,
-    zIndex: 2,
+    bottom: 44,
+    left: 0,
+    right: 0,
+    flexDirection: 'row' as const,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    gap: 24,
+    zIndex: 5,
   },
-  heroBrandWatermarkText: {
+  heroBottomItem: {
+    alignItems: 'center' as const,
+  },
+  heroBottomNumber: {
     fontFamily: Typography.serifFamily,
-    color: 'rgba(212,175,55,0.08)',
-    fontSize: 72,
-    fontWeight: '200' as const,
-    fontStyle: 'italic' as const,
+    color: Colors.gold,
+    fontSize: 20,
+    fontWeight: '300' as const,
+    letterSpacing: 1,
   },
+  heroBottomLabel: {
+    fontFamily: Typography.sansFamily,
+    color: Colors.whiteAlpha30,
+    fontSize: 8,
+    letterSpacing: 3,
+    fontWeight: '400' as const,
+    marginTop: 2,
+  },
+  heroBottomDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: Colors.whiteAlpha10,
+  },
+
+  scrollIndicator: {
+    position: 'absolute' as const,
+    bottom: 16,
+    alignSelf: 'center' as const,
+    zIndex: 5,
+  },
+  scrollLine: {
+    width: 1,
+    height: 16,
+    backgroundColor: Colors.goldAlpha30,
+  },
+
   section: { paddingTop: 44 },
   sectionHeader: { flexDirection: 'row' as const, justifyContent: 'space-between' as const, alignItems: 'flex-end' as const, paddingHorizontal: 28, marginBottom: 20 },
   sectionLabelRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 8, marginBottom: 6 },
