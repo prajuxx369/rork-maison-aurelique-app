@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Easing,
   Dimensions,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
@@ -32,6 +33,7 @@ import Colors from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { useWishlist } from '@/providers/WishlistProvider';
 import { useCollection } from '@/providers/CollectionProvider';
+import { MOCK_ORDERS } from '@/mocks/orders';
 
 const { width: _SCREEN_WIDTH } = Dimensions.get('window');
 const HEADER_HEIGHT = 280;
@@ -42,9 +44,10 @@ interface MenuItemProps {
   subtitle?: string;
   index: number;
   badge?: string;
+  onPress: () => void;
 }
 
-function MenuItem({ icon, title, subtitle, index, badge }: MenuItemProps) {
+function MenuItem({ icon, title, subtitle, index, badge, onPress }: MenuItemProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(16)).current;
   const pressScale = useRef(new Animated.Value(1)).current;
@@ -66,6 +69,7 @@ function MenuItem({ icon, title, subtitle, index, badge }: MenuItemProps) {
 
   const handlePress = () => {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
   };
 
   return (
@@ -98,6 +102,7 @@ function MenuItem({ icon, title, subtitle, index, badge }: MenuItemProps) {
 }
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { count: wishlistCount } = useWishlist();
   const { totalItems } = useCollection();
@@ -119,6 +124,10 @@ export default function ProfileScreen() {
       Animated.timing(exclusiveSlide, { toValue: 0, duration: 600, delay: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
     ]).start();
   }, [headerFade, headerScale, tierFade, tierSlide, exclusiveFade, exclusiveSlide]);
+
+  const navigate = useCallback((route: string) => {
+    router.push(route as never);
+  }, [router]);
 
   let menuIndex = 0;
 
@@ -199,37 +208,37 @@ export default function ProfileScreen() {
         </Animated.View>
 
         <View style={styles.statsRow}>
-          <View style={styles.statItem}>
+          <TouchableOpacity style={styles.statItem} activeOpacity={0.7} onPress={() => navigate('/wishlist')}>
             <Text style={styles.statValue}>{wishlistCount}</Text>
             <Text style={styles.statLabel}>Wishlist</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <TouchableOpacity style={styles.statItem} activeOpacity={0.7} onPress={() => navigate('/collection')}>
             <Text style={styles.statValue}>{totalItems}</Text>
             <Text style={styles.statLabel}>In Bag</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>3</Text>
+          <TouchableOpacity style={styles.statItem} activeOpacity={0.7} onPress={() => navigate('/profile/orders')}>
+            <Text style={styles.statValue}>{MOCK_ORDERS.length}</Text>
             <Text style={styles.statLabel}>Orders</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionLabel}>ACCOUNT</Text>
-          <MenuItem icon={<User color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Personal Details" subtitle="Name, email, phone" index={menuIndex++} />
-          <MenuItem icon={<Package color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Order History" subtitle="View past purchases" index={menuIndex++} badge="3" />
-          <MenuItem icon={<MapPin color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Delivery Addresses" subtitle="Manage your addresses" index={menuIndex++} />
+          <MenuItem icon={<User color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Personal Details" subtitle="Name, email, phone" index={menuIndex++} onPress={() => navigate('/profile/personal-details')} />
+          <MenuItem icon={<Package color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Order History" subtitle="View past purchases" index={menuIndex++} badge={String(MOCK_ORDERS.length)} onPress={() => navigate('/profile/orders')} />
+          <MenuItem icon={<MapPin color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Delivery Addresses" subtitle="Manage your addresses" index={menuIndex++} onPress={() => navigate('/profile/addresses')} />
         </View>
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionLabel}>PREFERENCES</Text>
-          <MenuItem icon={<Heart color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Saved Items" subtitle="Your wishlist" index={menuIndex++} badge={wishlistCount > 0 ? String(wishlistCount) : undefined} />
-          <MenuItem icon={<Eye color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Recently Viewed" subtitle="Browse history" index={menuIndex++} />
-          <MenuItem icon={<Star color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Style Preferences" subtitle="Categories & interests" index={menuIndex++} />
-          <MenuItem icon={<Bell color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Notifications" subtitle="Preferences & alerts" index={menuIndex++} />
-          <MenuItem icon={<Settings color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Settings" subtitle="App preferences" index={menuIndex++} />
-          <MenuItem icon={<HelpCircle color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Support" subtitle="Contact our atelier" index={menuIndex++} />
+          <MenuItem icon={<Heart color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Saved Items" subtitle="Your wishlist" index={menuIndex++} badge={wishlistCount > 0 ? String(wishlistCount) : undefined} onPress={() => navigate('/wishlist')} />
+          <MenuItem icon={<Eye color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Recently Viewed" subtitle="Browse history" index={menuIndex++} onPress={() => navigate('/profile/recently-viewed')} />
+          <MenuItem icon={<Star color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Style Preferences" subtitle="Categories & interests" index={menuIndex++} onPress={() => navigate('/profile/style-preferences')} />
+          <MenuItem icon={<Bell color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Notifications" subtitle="Preferences & alerts" index={menuIndex++} onPress={() => navigate('/profile/notifications')} />
+          <MenuItem icon={<Settings color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Settings" subtitle="App preferences" index={menuIndex++} onPress={() => navigate('/profile/settings')} />
+          <MenuItem icon={<HelpCircle color={Colors.whiteAlpha40} size={18} strokeWidth={1.5} />} title="Support" subtitle="Contact our atelier" index={menuIndex++} onPress={() => navigate('/profile/support')} />
         </View>
 
         <View style={styles.footer}>
