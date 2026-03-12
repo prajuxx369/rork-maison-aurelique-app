@@ -13,7 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Check, Heart, Minus, Plus, Shield } from 'lucide-react-native';
+import { ArrowLeft, Check, Heart, Minus, Plus, Shield, ShoppingBag } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { Typography } from '@/constants/typography';
@@ -300,6 +300,22 @@ export default function ProductDetailScreen() {
           </View>
         </Animated.View>
       </ScrollView>
+
+      <View style={[styles.buyNowBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <View style={styles.buyNowPriceCol}>
+          <Text style={styles.buyNowPriceLabel}>Price</Text>
+          <Text style={styles.buyNowPrice}>${product.price.toLocaleString()}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.buyNowButton}
+          onPress={handleAdd}
+          activeOpacity={0.8}
+          testID="buy-now-button"
+        >
+          <ShoppingBag color={Colors.black} size={18} strokeWidth={2} />
+          <Text style={styles.buyNowButtonText}>BUY NOW</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -327,7 +343,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Colors.whiteAlpha10,
   },
-  content: { paddingHorizontal: 28, paddingTop: 4, paddingBottom: 80 },
+  content: { paddingHorizontal: 28, paddingTop: 4, paddingBottom: 120 },
   brandRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 10, marginBottom: 12 },
   brandLine: { width: 20, height: 0.5, backgroundColor: Colors.goldAlpha30 },
   brandLabel: { fontFamily: Typography.sansFamily, color: Colors.goldAlpha30, letterSpacing: 5, fontSize: 9, fontWeight: '400' as const, textTransform: 'uppercase' as const },
@@ -370,4 +386,51 @@ const styles = StyleSheet.create({
   stepper: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 20, backgroundColor: Colors.charcoalMedium, borderRadius: 30, paddingHorizontal: 6, paddingVertical: 6, borderWidth: 0.5, borderColor: Colors.goldAlpha10 },
   stepperBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.goldAlpha08, justifyContent: 'center' as const, alignItems: 'center' as const },
   stepperValue: { fontFamily: Typography.serifFamily, color: Colors.white, fontWeight: '400' as const, fontSize: 18, minWidth: 24, textAlign: 'center' as const },
+  buyNowBar: {
+    position: 'absolute' as const,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    backgroundColor: Colors.black,
+    borderTopWidth: 0.5,
+    borderTopColor: Colors.goldAlpha10,
+  },
+  buyNowPriceCol: {
+    gap: 2,
+  },
+  buyNowPriceLabel: {
+    fontFamily: Typography.sansFamily,
+    color: Colors.whiteAlpha40,
+    fontSize: 11,
+    fontWeight: '400' as const,
+    letterSpacing: 1,
+    textTransform: 'uppercase' as const,
+  },
+  buyNowPrice: {
+    fontFamily: Typography.serifFamily,
+    color: Colors.gold,
+    fontSize: 22,
+    fontWeight: '400' as const,
+  },
+  buyNowButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 10,
+    backgroundColor: Colors.gold,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 4,
+  },
+  buyNowButtonText: {
+    fontFamily: Typography.sansFamily,
+    color: Colors.black,
+    fontSize: 13,
+    fontWeight: '700' as const,
+    letterSpacing: 3,
+  },
 });
